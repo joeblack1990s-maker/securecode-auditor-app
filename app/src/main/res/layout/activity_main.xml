@@ -22,7 +22,27 @@
         android:layout_marginTop="16dp"
         android:background="#001a1a"
         android:fontFamily="monospace"
-        android:text="> INITIATE CODE SCAN"
+        android:text="> INITIATE CODE SCAN (SAST)"
+        android:textColor="#00FFFF" />
+
+    <Button
+        android:id="@+id/dastButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> DYNAMIC ANALYSIS (DAST)"
+        android:textColor="#00FFFF" />
+
+    <Button
+        android:id="@+id/reverseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> REVERSE ENGINEERING"
         android:textColor="#00FFFF" />
 
     <Button

@@ -11,9 +11,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val scanButton = findViewById<Button>(R.id.scanButton)
+        val dastButton = findViewById<Button>(R.id.dastButton)
+        val reverseButton = findViewById<Button>(R.id.reverseButton)
         val cloudButton = findViewById<Button>(R.id.button4)
 
         scanButton.setOnClickListener {
+            startActivity(Intent(this, ReverseActivity::class.java))
+        }
+
+        dastButton.setOnClickListener {
+            startActivity(Intent(this, DastActivity::class.java))
+        }
+
+        reverseButton.setOnClickListener {
             startActivity(Intent(this, ReverseActivity::class.java))
         }
 

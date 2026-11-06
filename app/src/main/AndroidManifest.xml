@@ -16,5 +16,6 @@
         </activity>
         <activity android:name=".CloudActivity" />
         <activity android:name=".ReverseActivity" />
+        <activity android:name=".DastActivity" />
     </application>
 </manifest>
