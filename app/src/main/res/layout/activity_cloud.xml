@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="CLOUD SECURITY SCANNER"
+        android:textColor="#00FFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/configEditText"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:gravity="top|start"
+        android:hint="Paste cloud config here..."
+        android:inputType="textMultiLine"
+        android:textColor="#00FFAA"
+        android:textColorHint="#005555" />
+
+    <Button
+        android:id="@+id/scanCloudButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> [ SCAN CLOUD CONFIG ]"
+        android:textColor="#00FFFF" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/resultText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="#00FFAA"
+            android:textSize="14sp" />
+    </ScrollView>
+</LinearLayout>
