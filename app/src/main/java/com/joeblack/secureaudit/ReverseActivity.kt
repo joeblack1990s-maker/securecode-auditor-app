@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -52,7 +51,7 @@ class ReverseActivity : AppCompatActivity() {
         statusText.text = "Uploading APK to server..."
         selectButton.isEnabled = false
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        Thread {
             try {
                 val apkFile = File(cacheDir, "input.apk")
                 contentResolver.openInputStream(uri)?.use { input ->
@@ -160,7 +159,7 @@ class ReverseActivity : AppCompatActivity() {
                     selectButton.isEnabled = true
                 }
             }
-        }
+        }.start()
     }
 
     private fun formatResults(arr: JSONArray?): String {
