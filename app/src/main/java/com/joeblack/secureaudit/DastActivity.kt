@@ -85,5 +85,3 @@ class DastActivity : AppCompatActivity() {
         }
     }
 }
-EOF
-echo done
