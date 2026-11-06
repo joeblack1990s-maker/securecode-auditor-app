@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="DYNAMIC ANALYSIS (DAST)"
+        android:textColor="#00FFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/urlInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:hint="http://127.0.0.1:8080/api/player/player1"
+        android:inputType="textUri"
+        android:textColor="#00FFFF"
+        android:textColorHint="#00AAAA" />
+
+    <Spinner
+        android:id="@+id/methodSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#001a1a" />
+
+    <EditText
+        android:id="@+id/body_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:gravity="top|start"
+        android:hint="{\"player\":\"player1\",\"item\":\"sword\",\"price\":1}"
+        android:inputType="textMultiLine"
+        android:minLines="4"
+        android:textColor="#00FFFF"
+        android:textColorHint="#00AAAA"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/sendButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> SEND REQUEST"
+        android:textColor="#00FFFF" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/outputText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="#00FFAA"
+            android:textSize="14sp" />
+    </ScrollView>
+</LinearLayout>
