@@ -99,7 +99,7 @@ class ReverseActivity : AppCompatActivity() {
                     throw Exception("No task_id returned: $responseBody")
                 }
 
-                withContext(Dispatchers.Main) {
+                runOnUiThread {
                     statusText.text = "Scanning on server... (may take up to 2 minutes)"
                 }
 
@@ -107,7 +107,7 @@ class ReverseActivity : AppCompatActivity() {
                 var resultsJson: JSONArray? = null
                 var lastError: String? = null
                 while (!done) {
-                    delay(2000)
+                    Thread.sleep(2000)
                     val statusUrl = URL("$baseUrl/status/$taskId")
                     val statusConn = statusUrl.openConnection() as HttpURLConnection
                     statusConn.requestMethod = "GET"
@@ -135,7 +135,7 @@ class ReverseActivity : AppCompatActivity() {
                         else -> {
                             val stage = json.optString("stage")
                             val progress = json.optInt("progress", 0)
-                            withContext(Dispatchers.Main) {
+                            runOnUiThread {
                                 statusText.text = "$stage ($progress%)"
                             }
                         }
@@ -147,14 +147,14 @@ class ReverseActivity : AppCompatActivity() {
                 }
 
                 val html = formatResults(resultsJson)
-                withContext(Dispatchers.Main) {
+                runOnUiThread {
                     statusText.text = "Done."
                     resultText.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
                     selectButton.isEnabled = true
                 }
             } catch (e: Exception) {
                 Log.e("REVERSE_DEBUG", "Scan failed", e)
-                withContext(Dispatchers.Main) {
+                runOnUiThread {
                     statusText.text = "Error: ${e.message}"
                     resultText.text = HtmlCompat.fromHtml(escape(e.message ?: "Unknown error"), HtmlCompat.FROM_HTML_MODE_LEGACY)
                     selectButton.isEnabled = true
