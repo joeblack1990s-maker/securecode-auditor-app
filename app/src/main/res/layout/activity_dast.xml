@@ -42,7 +42,7 @@
         android:background="#001a1a"
         android:fontFamily="monospace"
         android:gravity="top|start"
-        android:hint="{\"player\":\"player1\",\"item\":\"sword\",\"price\":1}"
+        android:hint='{"player":"player1","item":"sword","price":1}'
         android:inputType="textMultiLine"
         android:minLines="4"
         android:textColor="#00FFFF"
