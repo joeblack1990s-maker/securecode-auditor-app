@@ -22,20 +22,8 @@
         android:layout_marginTop="16dp"
         android:background="#001a1a"
         android:fontFamily="monospace"
-        android:hint="http://target.com"
+        android:hint="Enter Target URL/Domain"
         android:inputType="textUri"
-        android:textColor="#00FFFF"
-        android:textColorHint="#00AAAA" />
-
-    <EditText
-        android:id="@+id/domainInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="#001a1a"
-        android:fontFamily="monospace"
-        android:hint="example.com"
-        android:inputType="text"
         android:textColor="#00FFFF"
         android:textColorHint="#00AAAA" />
 

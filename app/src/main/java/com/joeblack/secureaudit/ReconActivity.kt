@@ -23,7 +23,6 @@ class ReconActivity : AppCompatActivity() {
         setContentView(R.layout.activity_recon)
 
         val urlInput = findViewById<EditText>(R.id.urlInput)
-        val domainInput = findViewById<EditText>(R.id.domainInput)
         val runButton = findViewById<Button>(R.id.runButton)
         val fuzzButton = findViewById<Button>(R.id.fuzzButton)
         val paramButton = findViewById<Button>(R.id.paramButton)
@@ -43,7 +42,7 @@ class ReconActivity : AppCompatActivity() {
         }
 
         fun runScan(endpoint: String) {
-            val url = urlInput.text.toString().trim()
+            val url = normalizeUrl(urlInput.text.toString())
             reportText.text = ""
             progressBar.visibility = android.view.View.VISIBLE
             setEnabled(false)
@@ -86,8 +85,21 @@ class ReconActivity : AppCompatActivity() {
             }.start()
         }
 
+        fun cleanDomain(raw: String): String {
+            var d = raw.trim()
+            d = d.replace("http://", "").replace("https://", "")
+            d = d.split("/")[0]
+            d = d.removePrefix("www.")
+            return d.trim()
+        }
+
+        fun normalizeUrl(raw: String): String {
+            val t = raw.trim()
+            return if (t.startsWith("http://") || t.startsWith("https://")) t else "http://$t"
+        }
+
         fun runSubdomains() {
-            val domain = domainInput.text.toString().trim()
+            val domain = cleanDomain(urlInput.text.toString())
             reportText.text = ""
             progressBar.visibility = android.view.View.VISIBLE
             setEnabled(false)
