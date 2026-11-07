@@ -12,6 +12,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class ReconActivity : AppCompatActivity() {
+    private val subdomains = mutableListOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -23,6 +25,7 @@ class ReconActivity : AppCompatActivity() {
         val fuzzButton = findViewById<Button>(R.id.fuzzButton)
         val paramButton = findViewById<Button>(R.id.paramButton)
         val subdomainButton = findViewById<Button>(R.id.subdomainButton)
+        val massScanButton = findViewById<Button>(R.id.massScanButton)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val reportText = findViewById<TextView>(R.id.reportText)
 
@@ -31,6 +34,7 @@ class ReconActivity : AppCompatActivity() {
             fuzzButton.isEnabled = enabled
             paramButton.isEnabled = enabled
             subdomainButton.isEnabled = enabled
+            massScanButton.isEnabled = enabled
         }
 
         fun runScan(endpoint: String) {
@@ -82,6 +86,7 @@ class ReconActivity : AppCompatActivity() {
             reportText.text = ""
             progressBar.visibility = android.view.View.VISIBLE
             setEnabled(false)
+            subdomains.clear()
 
             Thread {
                 try {
@@ -103,9 +108,73 @@ class ReconActivity : AppCompatActivity() {
                         val arr = JSONArray(responseText)
                         val sb = StringBuilder()
                         for (i in 0 until arr.length()) {
-                            sb.append(arr.getString(i)).append("\n")
+                            val item = arr.getString(i)
+                            subdomains.add(item)
+                            sb.append(item).append("\n")
                         }
                         if (sb.isEmpty()) "No subdomains found." else sb.toString()
+                    } catch (e: Exception) {
+                        responseText
+                    }
+
+                    runOnUiThread {
+                        reportText.text = display
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        reportText.text = "Error: ${e.message}"
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                }
+            }.start()
+        }
+
+        fun runMassScan() {
+            val targets = if (subdomains.isNotEmpty()) subdomains.toList() else reportText.text.toString().lines().filter { it.isNotBlank() }
+            if (targets.isEmpty()) {
+                reportText.text = "No subdomains to scan. Run subdomain enumeration first."
+                return
+            }
+            reportText.text = "Scanning ${targets.size} subdomains..."
+            progressBar.visibility = android.view.View.VISIBLE
+            setEnabled(false)
+
+            Thread {
+                try {
+                    val conn = URL("http://127.0.0.1:5000/api/mass_scan").openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    conn.connectTimeout = 30000
+                    conn.readTimeout = 300000
+                    val arr = JSONArray()
+                    for (t in targets) arr.put(t)
+                    val body = JSONObject().put("subdomains", arr).toString()
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+
+                    val code = conn.responseCode
+                    val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                    conn.disconnect()
+
+                    val display = try {
+                        val arr2 = JSONArray(responseText)
+                        val sb = StringBuilder()
+                        for (i in 0 until arr2.length()) {
+                            val o = arr2.getJSONObject(i)
+                            sb.append(o.optString("subdomain"))
+                                .append(" | ")
+                                .append(o.optString("status"))
+                                .append(" | ")
+                                .append(o.optString("type"))
+                                .append(" | ")
+                                .append(o.optString("evidence"))
+                                .append("\n")
+                        }
+                        if (sb.isEmpty()) "No results." else sb.toString()
                     } catch (e: Exception) {
                         responseText
                     }
@@ -129,5 +198,6 @@ class ReconActivity : AppCompatActivity() {
         fuzzButton.setOnClickListener { runScan("/api/fuzz") }
         paramButton.setOnClickListener { runScan("/api/paramspider") }
         subdomainButton.setOnClickListener { runSubdomains() }
+        massScanButton.setOnClickListener { runMassScan() }
     }
 }

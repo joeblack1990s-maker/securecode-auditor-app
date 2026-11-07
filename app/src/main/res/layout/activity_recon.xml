@@ -79,6 +79,16 @@
         android:text="> [ RUN SUBDOMAIN ENUMERATION ]"
         android:textColor="#00FFFF" />
 
+    <Button
+        android:id="@+id/massScanButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> [ MASS SCAN ALL SUBDOMAINS ]"
+        android:textColor="#00FFFF" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
