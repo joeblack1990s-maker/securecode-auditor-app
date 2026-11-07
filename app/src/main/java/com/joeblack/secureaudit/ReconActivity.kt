@@ -71,7 +71,7 @@ class ReconActivity : AppCompatActivity() {
                     }
 
                     runOnUiThread {
-                        reportText.text = display
+                        reportText.text = HtmlCompat.fromHtml(display, HtmlCompat.FROM_HTML_MODE_LEGACY)
                         progressBar.visibility = android.view.View.GONE
                         setEnabled(true)
                     }
@@ -109,22 +109,26 @@ class ReconActivity : AppCompatActivity() {
                     conn.disconnect()
 
                     val display = try {
-                        val arr = JSONArray(responseText)
+                        val obj = JSONObject(responseText)
+                        val gold = obj.optJSONArray("gold_mine") ?: JSONArray()
+                        val interesting = obj.optJSONArray("interesting") ?: JSONArray()
+                        val boring = obj.optJSONArray("boring") ?: JSONArray()
+                        subdomains.clear()
                         val sb = StringBuilder()
-                        for (i in 0 until arr.length()) {
-                            val item = arr.getString(i)
-                            subdomains.add(item)
-                            sb.append(item).append("\n")
+                        sb.append("<font color='#FF3333'><b>🚨 GOLD MINE TARGETS:</b></font><br>")
+                        if (gold.length() == 0) sb.append("None<br>") else for (i in 0 until gold.length()) { val item = gold.getString(i); subdomains.add(item); sb.append("<font color='#FF3333'>").append(item).append("</font><br>") }
+                        sb.append("<br><font color='#FFCC00'><b>🟡 INTERESTING TARGETS:</b></font><br>")
+                        if (interesting.length() == 0) sb.append("None<br>") else for (i in 0 until interesting.length()) { val item = interesting.getString(i); subdomains.add(item); sb.append("<font color='#FFCC00'>").append(item).append("</font><br>") }
+                        sb.append("<br><font color='#888888'><b>⚪ BORING INFRASTRUCTURE:</b></font><br>")
+                        if (boring.length() == 0) sb.append("None<br>") else for (i in 0 until boring.length()) { val item = boring.getString(i); subdomains.add(item); sb.append("<font color='#888888'>").append(item).append("</font><br>") }
+                        if (subdomains.isEmpty() && domain.isNotBlank()) {
+                            subdomains.add(domain)
+                            sb.append("<br>No subdomains found. Falling back to main domain: ").append(domain)
                         }
-                        if (sb.isEmpty()) {
-                            if (domain.isNotBlank()) {
-                                subdomains.add(domain)
-                                "No subdomains found. Falling back to main domain: $domain"
-                            } else {
-                                "No subdomains found."
-                            }
-                        } else sb.toString()
+                        sb.toString()
                     } catch (e: Exception) {
+                        responseText
+                    }                    } catch (e: Exception) {
                         responseText
                     }
 
