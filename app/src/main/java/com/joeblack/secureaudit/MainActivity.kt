@@ -14,6 +14,7 @@ class MainActivity : AppCompatActivity() {
         val dastButton = findViewById<Button>(R.id.dastButton)
         val reverseButton = findViewById<Button>(R.id.reverseButton)
         val cloudButton = findViewById<Button>(R.id.button4)
+        val reconButton = findViewById<Button>(R.id.reconButton)
 
         scanButton.setOnClickListener {
             startActivity(Intent(this, ReverseActivity::class.java))
@@ -29,6 +30,10 @@ class MainActivity : AppCompatActivity() {
 
         cloudButton.setOnClickListener {
             startActivity(Intent(this, CloudActivity::class.java))
+        }
+
+        reconButton.setOnClickListener {
+            startActivity(Intent(this, ReconActivity::class.java))
         }
     }
 }

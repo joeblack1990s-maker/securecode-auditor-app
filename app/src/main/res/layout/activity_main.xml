@@ -46,6 +46,16 @@
         android:textColor="#00FFFF" />
 
     <Button
+        android:id="@+id/reconButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> AUTOMATED RECON ENGINE"
+        android:textColor="#00FFFF" />
+
+    <Button
         android:id="@+id/button4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
