@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.HtmlCompat
 import android.app.AlertDialog
 import org.json.JSONArray
 import org.json.JSONObject
@@ -127,8 +128,6 @@ class ReconActivity : AppCompatActivity() {
                         }
                         sb.toString()
                     } catch (e: Exception) {
-                        responseText
-                    }                    } catch (e: Exception) {
                         responseText
                     }
 
