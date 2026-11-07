@@ -176,6 +176,8 @@ class ReconActivity : AppCompatActivity() {
                                 .append(" | ")
                                 .append(o.optString("type"))
                                 .append(" | ")
+                                .append(o.optString("tested_url"))
+                                .append(" | ")
                                 .append(o.optString("evidence"))
                                 .append("\n")
                         }
@@ -223,7 +225,8 @@ class ReconActivity : AppCompatActivity() {
                             val o = arr.getJSONObject(i)
                             if (o.optString("status") == "vulnerable") {
                                 vulnType = o.optString("type")
-                                url = "http://" + o.optString("subdomain")
+                                val tested = o.optString("tested_url")
+                                url = if (tested.isNotBlank()) tested else "http://" + o.optString("subdomain")
                                 payload = o.optString("payload", payload)
                                 if (payload.isBlank()) payload = "{{7*7}}"
                                 evidence = o.optString("evidence")
