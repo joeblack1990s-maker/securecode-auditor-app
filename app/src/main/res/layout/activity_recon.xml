@@ -78,6 +78,16 @@
         android:textColor="#00FFFF" />
 
     <Button
+        android:id="@+id/bucketButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#001a1a"
+        android:fontFamily="monospace"
+        android:text="> [ RUN CLOUD BUCKET SCAN ]"
+        android:textColor="#00FFFF" />
+
+    <Button
         android:id="@+id/reportButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

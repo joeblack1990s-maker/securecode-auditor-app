@@ -28,6 +28,7 @@ class ReconActivity : AppCompatActivity() {
         val paramButton = findViewById<Button>(R.id.paramButton)
         val subdomainButton = findViewById<Button>(R.id.subdomainButton)
         val massScanButton = findViewById<Button>(R.id.massScanButton)
+        val bucketButton = findViewById<Button>(R.id.bucketButton)
         val reportButton = findViewById<Button>(R.id.reportButton)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val reportText = findViewById<TextView>(R.id.reportText)
@@ -38,6 +39,7 @@ class ReconActivity : AppCompatActivity() {
             paramButton.isEnabled = enabled
             subdomainButton.isEnabled = enabled
             massScanButton.isEnabled = enabled
+            bucketButton.isEnabled = enabled
             reportButton.isEnabled = enabled
         }
 
@@ -449,11 +451,72 @@ class ReconActivity : AppCompatActivity() {
             }.start()
         }
 
+        fun runBucketScan() {
+            val url = normalizeUrl(urlInput.text.toString())
+            reportText.text = ""
+            progressBar.visibility = android.view.View.VISIBLE
+            setEnabled(false)
+            Thread {
+                try {
+                    val conn = URL("http://127.0.0.1:5000/api/bucket_scan").openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    conn.connectTimeout = 30000
+                    conn.readTimeout = 60000
+                    val body = JSONObject().put("url", url).toString()
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+
+                    val code = conn.responseCode
+                    val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                    conn.disconnect()
+
+                    val display = try {
+                        val arr = JSONArray(responseText)
+                        val sb = StringBuilder()
+                        for (i in 0 until arr.length()) {
+                            val o = arr.getJSONObject(i)
+                            val status = o.optString("status")
+                            val provider = o.optString("provider")
+                            val u = o.optString("url")
+                            if (status.contains("Dangling") || status.contains("Public")) {
+                                sb.append("<font color='#FF3333'><b>[ CRITICAL ]</b></font> ")
+                                sb.append(status).append(" on ").append(u)
+                                sb.append(" (Provider: ").append(provider).append(")<br><br>")
+                            } else if (status.contains("Locked")) {
+                                sb.append("<font color='#00FF00'><b>[ SECURE ]</b></font> ")
+                                sb.append("Bucket locked on ").append(u).append("<br><br>")
+                            } else {
+                                sb.append(status).append(" on ").append(u).append("<br><br>")
+                            }
+                        }
+                        if (sb.isEmpty()) "No cloud bucket detected." else sb.toString()
+                    } catch (e: Exception) {
+                        responseText
+                    }
+
+                    runOnUiThread {
+                        reportText.text = HtmlCompat.fromHtml(display, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        reportText.text = "Error: ${e.message}"
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                }
+            }.start()
+        }
+
         runButton.setOnClickListener { runScan("/api/recon") }
         fuzzButton.setOnClickListener { runScan("/api/fuzz") }
         paramButton.setOnClickListener { runScan("/api/paramspider") }
         subdomainButton.setOnClickListener { runSubdomains() }
         massScanButton.setOnClickListener { runMassScan() }
+        bucketButton.setOnClickListener { runBucketScan() }
         reportButton.setOnClickListener { runReport() }
     }
 }
