@@ -123,6 +123,9 @@ class ReconActivity : AppCompatActivity() {
 
                     val display = try {
                         val obj = JSONObject(responseText)
+                        if (obj.has("error")) {
+                            "<font color='#FF3333'><b>" + obj.optString("error") + "</b></font>"
+                        } else {
                         val gold = obj.optJSONArray("gold_mine") ?: JSONArray()
                         val interesting = obj.optJSONArray("interesting") ?: JSONArray()
                         val boring = obj.optJSONArray("boring") ?: JSONArray()
@@ -139,6 +142,7 @@ class ReconActivity : AppCompatActivity() {
                             sb.append("<br>No subdomains found. Falling back to main domain: ").append(domain)
                         }
                         sb.toString()
+                        }
                     } catch (e: Exception) {
                         responseText
                     }
