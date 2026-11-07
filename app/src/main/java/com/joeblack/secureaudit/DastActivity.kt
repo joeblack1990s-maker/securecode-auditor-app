@@ -47,7 +47,7 @@ class DastActivity : AppCompatActivity() {
                     val conn = URL(url).openConnection() as HttpURLConnection
                     conn.requestMethod = method
                     conn.connectTimeout = 15000
-                    conn.readTimeout = 30000
+                    conn.readTimeout = 60000
                     if (method == "POST") {
                         conn.doOutput = true
                         conn.setRequestProperty("Content-Type", "application/json")

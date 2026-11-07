@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import android.app.AlertDialog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -115,7 +116,14 @@ class ReconActivity : AppCompatActivity() {
                             subdomains.add(item)
                             sb.append(item).append("\n")
                         }
-                        if (sb.isEmpty()) "No subdomains found." else sb.toString()
+                        if (sb.isEmpty()) {
+                            if (domain.isNotBlank()) {
+                                subdomains.add(domain)
+                                "No subdomains found. Falling back to main domain: $domain"
+                            } else {
+                                "No subdomains found."
+                            }
+                        } else sb.toString()
                     } catch (e: Exception) {
                         responseText
                     }
@@ -216,10 +224,19 @@ class ReconActivity : AppCompatActivity() {
                     conn.connectTimeout = 30000
                     conn.readTimeout = 60000
                     val arr = lastMassResults
-                    var vulnType = "SSTI"
-                    var url = "http://target.com/search?q="
-                    var payload = "{{7*7}}"
-                    var evidence = "Server returned 49"
+                    if (arr == null) {
+                        runOnUiThread {
+                            reportText.text = "No vulnerable findings to report."
+                            progressBar.visibility = android.view.View.GONE
+                            setEnabled(true)
+                        }
+                        return@Thread
+                    }
+                    var vulnType = ""
+                    var url = ""
+                    var payload = ""
+                    var evidence = ""
+                    var found = false
                     if (arr != null) {
                         for (i in 0 until arr.length()) {
                             val o = arr.getJSONObject(i)
@@ -228,11 +245,21 @@ class ReconActivity : AppCompatActivity() {
                                 val tested = o.optString("tested_url")
                                 url = if (tested.isNotBlank()) tested else "http://" + o.optString("subdomain")
                                 payload = o.optString("payload", payload)
-                                if (payload.isBlank()) payload = "{{7*7}}"
+                                if (payload.isBlank()) payload = "N/A"
                                 evidence = o.optString("evidence")
+                                found = true
                                 break
                             }
                         }
+                    }
+                    if (!found) {
+                        runOnUiThread {
+                            reportText.text = "No vulnerable findings to report."
+                            progressBar.visibility = android.view.View.GONE
+                            setEnabled(true)
+                        }
+                        return@Thread
+                    }
                     }
                     val body = JSONObject()
                         .put("vuln_type", vulnType)
@@ -254,6 +281,61 @@ class ReconActivity : AppCompatActivity() {
 
                     runOnUiThread {
                         reportText.text = display
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        reportText.text = "Error: ${e.message}"
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                }
+            }.start()
+        }
+
+        fun runExtract() {
+            val arr = lastMassResults ?: return
+            progressBar.visibility = android.view.View.VISIBLE
+            setEnabled(false)
+            Thread {
+                try {
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        if (o.optString("status") != "vulnerable") continue
+                        val url = o.optString("tested_url")
+                        val type = o.optString("type")
+                        val conn = URL("http://127.0.0.1:5000/api/extract").openConnection() as HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.doOutput = true
+                        conn.connectTimeout = 30000
+                        conn.readTimeout = 60000
+                        val body = JSONObject().put("url", url).put("vuln_type", type).toString()
+                        conn.outputStream.use { it.write(body.toByteArray()) }
+                        val code = conn.responseCode
+                        val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                        conn.disconnect()
+                        val evidence = try { JSONObject(responseText).optString("evidence", responseText) } catch (e: Exception) { responseText }
+                        o.put("evidence", evidence)
+                    }
+                    val sb = StringBuilder()
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        sb.append(o.optString("subdomain"))
+                            .append(" | ")
+                            .append(o.optString("status"))
+                            .append(" | ")
+                            .append(o.optString("type"))
+                            .append(" | ")
+                            .append(o.optString("tested_url"))
+                            .append(" | ")
+                            .append(o.optString("evidence"))
+                            .append("\n")
+                    }
+                    runOnUiThread {
+                        reportText.text = sb.toString()
                         progressBar.visibility = android.view.View.GONE
                         setEnabled(true)
                     }
