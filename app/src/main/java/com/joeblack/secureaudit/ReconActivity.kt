@@ -13,6 +13,7 @@ import java.net.URL
 
 class ReconActivity : AppCompatActivity() {
     private val subdomains = mutableListOf<String>()
+    private var lastMassResults: JSONArray? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -210,11 +211,29 @@ class ReconActivity : AppCompatActivity() {
                     conn.doOutput = true
                     conn.connectTimeout = 30000
                     conn.readTimeout = 60000
+                    val arr = lastMassResults
+                    var vulnType = "SSTI"
+                    var url = "http://target.com/search?q="
+                    var payload = "{{7*7}}"
+                    var evidence = "Server returned 49"
+                    if (arr != null) {
+                        for (i in 0 until arr.length()) {
+                            val o = arr.getJSONObject(i)
+                            if (o.optString("status") == "vulnerable") {
+                                vulnType = o.optString("type")
+                                url = "http://" + o.optString("subdomain")
+                                payload = o.optString("payload", payload)
+                                if (payload.isBlank()) payload = "{{7*7}}"
+                                evidence = o.optString("evidence")
+                                break
+                            }
+                        }
+                    }
                     val body = JSONObject()
-                        .put("vuln_type", "SSTI")
-                        .put("url", "http://target.com/search?q=")
-                        .put("payload", "{{7*7}}")
-                        .put("evidence", "Server returned 49")
+                        .put("vuln_type", vulnType)
+                        .put("url", url)
+                        .put("payload", payload)
+                        .put("evidence", evidence)
                         .toString()
                     conn.outputStream.use { it.write(body.toByteArray()) }
 
@@ -228,6 +247,7 @@ class ReconActivity : AppCompatActivity() {
                         responseText
                     }
 
+                    lastMassResults = arr2
                     runOnUiThread {
                         reportText.text = display
                         progressBar.visibility = android.view.View.GONE
