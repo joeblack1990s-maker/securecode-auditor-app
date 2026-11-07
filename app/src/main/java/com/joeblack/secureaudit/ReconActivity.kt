@@ -194,10 +194,15 @@ class ReconActivity : AppCompatActivity() {
                         responseText
                     }
 
+                    lastMassResults = parsedArray
                     runOnUiThread {
-                        reportText.text = display
                         progressBar.visibility = android.view.View.GONE
                         setEnabled(true)
+                        if (parsedArray != null) {
+                            handleMassResults(parsedArray!!)
+                        } else {
+                            reportText.text = display
+                        }
                     }
                 } catch (e: Exception) {
                     runOnUiThread {
@@ -207,6 +212,83 @@ class ReconActivity : AppCompatActivity() {
                     }
                 }
             }.start()
+        }
+
+        fun handleMassResults(arr: JSONArray) {
+            val vulnIndices = (0 until arr.length()).filter { arr.getJSONObject(it).optString("status") == "vulnerable" }
+            if (vulnIndices.isEmpty()) {
+                val sb = StringBuilder()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    sb.append(o.optString("subdomain")).append(" | ")
+                        .append(o.optString("status")).append(" | ")
+                        .append(o.optString("type")).append(" | ")
+                        .append(o.optString("tested_url")).append(" | ")
+                        .append(o.optString("evidence")).append("\n")
+                }
+                reportText.text = if (sb.isEmpty()) "No results." else sb.toString()
+                return
+            }
+
+            fun showNext(index: Int) {
+                val next = vulnIndices.dropWhile { it < index }.firstOrNull()
+                if (next == null) {
+                    val sb = StringBuilder()
+                    for (i in 0 until arr.length()) {
+                        val o = arr.getJSONObject(i)
+                        sb.append(o.optString("subdomain")).append(" | ")
+                            .append(o.optString("status")).append(" | ")
+                            .append(o.optString("type")).append(" | ")
+                            .append(o.optString("tested_url")).append(" | ")
+                            .append(o.optString("evidence")).append("\n")
+                    }
+                    reportText.text = if (sb.isEmpty()) "No results." else sb.toString()
+                    return
+                }
+                val o = arr.getJSONObject(next)
+                val type = o.optString("type")
+                val url = o.optString("tested_url")
+                AlertDialog.Builder(this@ReconActivity)
+                    .setTitle("Vulnerability Found!")
+                    .setMessage("A $type was found at $url. Do you have authorization to extract proof of concept?")
+                    .setPositiveButton("PROCEED") { _, _ ->
+                        progressBar.visibility = android.view.View.VISIBLE
+                        setEnabled(false)
+                        Thread {
+                            try {
+                                val conn = URL("http://127.0.0.1:5000/api/extract").openConnection() as HttpURLConnection
+                                conn.requestMethod = "POST"
+                                conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.doOutput = true
+                                conn.connectTimeout = 30000
+                                conn.readTimeout = 60000
+                                val body = JSONObject().put("url", url).put("vuln_type", type).toString()
+                                conn.outputStream.use { it.write(body.toByteArray()) }
+                                val code = conn.responseCode
+                                val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                                conn.disconnect()
+                                val evidence = try { JSONObject(responseText).optString("evidence", responseText) } catch (e: Exception) { responseText }
+                                o.put("evidence", evidence)
+                            } catch (e: Exception) {
+                                o.put("evidence", "Extract error: ${e.message}")
+                            }
+                            runOnUiThread {
+                                progressBar.visibility = android.view.View.GONE
+                                setEnabled(true)
+                                showNext(next + 1)
+                            }
+                        }.start()
+                    }
+                    .setNegativeButton("SKIP") { _, _ ->
+                        o.put("evidence", "Vulnerable - Not Exploited")
+                        showNext(next + 1)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+
+            showNext(0)
         }
 
         fun runReport() {
