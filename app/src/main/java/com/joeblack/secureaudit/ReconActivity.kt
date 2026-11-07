@@ -66,5 +66,3 @@ class ReconActivity : AppCompatActivity() {
         }
     }
 }
-EOF
-echo done
