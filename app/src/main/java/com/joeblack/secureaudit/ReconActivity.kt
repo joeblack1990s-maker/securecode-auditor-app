@@ -178,6 +178,7 @@ class ReconActivity : AppCompatActivity() {
                                 .append("\n")
                         }
                         if (sb.isEmpty()) "No results." else sb.toString()
+                        lastMassResults = arr2
                     } catch (e: Exception) {
                         responseText
                     }
@@ -247,7 +248,6 @@ class ReconActivity : AppCompatActivity() {
                         responseText
                     }
 
-                    lastMassResults = arr2
                     runOnUiThread {
                         reportText.text = display
                         progressBar.visibility = android.view.View.GONE
