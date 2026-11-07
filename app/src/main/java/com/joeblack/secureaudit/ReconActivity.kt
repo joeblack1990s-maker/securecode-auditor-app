@@ -132,7 +132,7 @@ class ReconActivity : AppCompatActivity() {
                     }
 
                     runOnUiThread {
-                        reportText.text = display
+                        reportText.text = HtmlCompat.fromHtml(display, HtmlCompat.FROM_HTML_MODE_LEGACY)
                         progressBar.visibility = android.view.View.GONE
                         setEnabled(true)
                     }
