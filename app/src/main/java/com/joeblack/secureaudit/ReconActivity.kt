@@ -260,7 +260,6 @@ class ReconActivity : AppCompatActivity() {
                         }
                         return@Thread
                     }
-                    }
                     val body = JSONObject()
                         .put("vuln_type", vulnType)
                         .put("url", url)
