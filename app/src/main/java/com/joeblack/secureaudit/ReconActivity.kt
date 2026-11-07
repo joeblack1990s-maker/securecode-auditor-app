@@ -26,6 +26,7 @@ class ReconActivity : AppCompatActivity() {
         val paramButton = findViewById<Button>(R.id.paramButton)
         val subdomainButton = findViewById<Button>(R.id.subdomainButton)
         val massScanButton = findViewById<Button>(R.id.massScanButton)
+        val reportButton = findViewById<Button>(R.id.reportButton)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val reportText = findViewById<TextView>(R.id.reportText)
 
@@ -35,6 +36,7 @@ class ReconActivity : AppCompatActivity() {
             paramButton.isEnabled = enabled
             subdomainButton.isEnabled = enabled
             massScanButton.isEnabled = enabled
+            reportButton.isEnabled = enabled
         }
 
         fun runScan(endpoint: String) {
@@ -194,10 +196,58 @@ class ReconActivity : AppCompatActivity() {
             }.start()
         }
 
+        fun runReport() {
+            reportText.text = ""
+            progressBar.visibility = android.view.View.VISIBLE
+            setEnabled(false)
+
+            Thread {
+                try {
+                    val conn = URL("http://127.0.0.1:5000/api/generate_report").openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    conn.connectTimeout = 30000
+                    conn.readTimeout = 60000
+                    val body = JSONObject()
+                        .put("vuln_type", "SSTI")
+                        .put("url", "http://target.com/search?q=")
+                        .put("payload", "{{7*7}}")
+                        .put("evidence", "Server returned 49")
+                        .toString()
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+
+                    val code = conn.responseCode
+                    val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                    conn.disconnect()
+
+                    val display = try {
+                        JSONObject(responseText).optString("report", responseText)
+                    } catch (e: Exception) {
+                        responseText
+                    }
+
+                    runOnUiThread {
+                        reportText.text = display
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        reportText.text = "Error: ${e.message}"
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                }
+            }.start()
+        }
+
         runButton.setOnClickListener { runScan("/api/recon") }
         fuzzButton.setOnClickListener { runScan("/api/fuzz") }
         paramButton.setOnClickListener { runScan("/api/paramspider") }
         subdomainButton.setOnClickListener { runSubdomains() }
         massScanButton.setOnClickListener { runMassScan() }
+        reportButton.setOnClickListener { runReport() }
     }
 }
