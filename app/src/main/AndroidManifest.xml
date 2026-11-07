@@ -18,5 +18,6 @@
         <activity android:name=".ReverseActivity" />
         <activity android:name=".DastActivity" />
         <activity android:name=".ReconActivity" />
+        <activity android:name=".ManualActivity" />
     </application>
 </manifest>
