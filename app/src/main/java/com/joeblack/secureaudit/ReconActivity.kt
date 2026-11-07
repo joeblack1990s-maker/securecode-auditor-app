@@ -143,77 +143,6 @@ class ReconActivity : AppCompatActivity() {
             }.start()
         }
 
-        fun runMassScan() {
-            val targets = if (subdomains.isNotEmpty()) subdomains.toList() else reportText.text.toString().lines().filter { it.isNotBlank() }
-            if (targets.isEmpty()) {
-                reportText.text = "No subdomains to scan. Run subdomain enumeration first."
-                return
-            }
-            reportText.text = "Scanning ${targets.size} subdomains..."
-            progressBar.visibility = android.view.View.VISIBLE
-            setEnabled(false)
-
-            Thread {
-                try {
-                    val conn = URL("http://127.0.0.1:5000/api/mass_scan").openConnection() as HttpURLConnection
-                    conn.requestMethod = "POST"
-                    conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
-                    conn.setRequestProperty("Content-Type", "application/json")
-                    conn.doOutput = true
-                    conn.connectTimeout = 30000
-                    conn.readTimeout = 300000
-                    val arr = JSONArray()
-                    for (t in targets) arr.put(t)
-                    val body = JSONObject().put("subdomains", arr).toString()
-                    conn.outputStream.use { it.write(body.toByteArray()) }
-
-                    val code = conn.responseCode
-                    val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
-                    conn.disconnect()
-
-                    var parsedArray: JSONArray? = null
-                    val display = try {
-                        val arr2 = JSONArray(responseText)
-                        parsedArray = arr2
-                        val sb = StringBuilder()
-                        for (i in 0 until arr2.length()) {
-                            val o = arr2.getJSONObject(i)
-                            sb.append(o.optString("subdomain"))
-                                .append(" | ")
-                                .append(o.optString("status"))
-                                .append(" | ")
-                                .append(o.optString("type"))
-                                .append(" | ")
-                                .append(o.optString("tested_url"))
-                                .append(" | ")
-                                .append(o.optString("evidence"))
-                                .append("\n")
-                        }
-                        if (sb.isEmpty()) "No results." else sb.toString()
-                    } catch (e: Exception) {
-                        responseText
-                    }
-
-                    lastMassResults = parsedArray
-                    runOnUiThread {
-                        progressBar.visibility = android.view.View.GONE
-                        setEnabled(true)
-                        if (parsedArray != null) {
-                            handleMassResults(parsedArray!!)
-                        } else {
-                            reportText.text = display
-                        }
-                    }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        reportText.text = "Error: ${e.message}"
-                        progressBar.visibility = android.view.View.GONE
-                        setEnabled(true)
-                    }
-                }
-            }.start()
-        }
-
         fun handleMassResults(arr: JSONArray) {
             val vulnIndices = (0 until arr.length()).filter { arr.getJSONObject(it).optString("status") == "vulnerable" }
             if (vulnIndices.isEmpty()) {
@@ -289,6 +218,77 @@ class ReconActivity : AppCompatActivity() {
             }
 
             showNext(0)
+        }
+
+        fun runMassScan() {
+            val targets = if (subdomains.isNotEmpty()) subdomains.toList() else reportText.text.toString().lines().filter { it.isNotBlank() }
+            if (targets.isEmpty()) {
+                reportText.text = "No subdomains to scan. Run subdomain enumeration first."
+                return
+            }
+            reportText.text = "Scanning ${targets.size} subdomains..."
+            progressBar.visibility = android.view.View.VISIBLE
+            setEnabled(false)
+
+            Thread {
+                try {
+                    val conn = URL("http://127.0.0.1:5000/api/mass_scan").openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Authorization", "Bearer super-secret-auditor-key-123")
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.doOutput = true
+                    conn.connectTimeout = 30000
+                    conn.readTimeout = 300000
+                    val arr = JSONArray()
+                    for (t in targets) arr.put(t)
+                    val body = JSONObject().put("subdomains", arr).toString()
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+
+                    val code = conn.responseCode
+                    val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
+                    conn.disconnect()
+
+                    var parsedArray: JSONArray? = null
+                    val display = try {
+                        val arr2 = JSONArray(responseText)
+                        parsedArray = arr2
+                        val sb = StringBuilder()
+                        for (i in 0 until arr2.length()) {
+                            val o = arr2.getJSONObject(i)
+                            sb.append(o.optString("subdomain"))
+                                .append(" | ")
+                                .append(o.optString("status"))
+                                .append(" | ")
+                                .append(o.optString("type"))
+                                .append(" | ")
+                                .append(o.optString("tested_url"))
+                                .append(" | ")
+                                .append(o.optString("evidence"))
+                                .append("\n")
+                        }
+                        if (sb.isEmpty()) "No results." else sb.toString()
+                    } catch (e: Exception) {
+                        responseText
+                    }
+
+                    lastMassResults = parsedArray
+                    runOnUiThread {
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                        if (parsedArray != null) {
+                            handleMassResults(parsedArray!!)
+                        } else {
+                            reportText.text = display
+                        }
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        reportText.text = "Error: ${e.message}"
+                        progressBar.visibility = android.view.View.GONE
+                        setEnabled(true)
+                    }
+                }
+            }.start()
         }
 
         fun runReport() {
