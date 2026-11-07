@@ -41,6 +41,19 @@ class ReconActivity : AppCompatActivity() {
             reportButton.isEnabled = enabled
         }
 
+        fun cleanDomain(raw: String): String {
+            var d = raw.trim()
+            d = d.replace("http://", "").replace("https://", "")
+            d = d.split("/")[0]
+            d = d.removePrefix("www.")
+            return d.trim()
+        }
+
+        fun normalizeUrl(raw: String): String {
+            val t = raw.trim()
+            return if (t.startsWith("http://") || t.startsWith("https://")) t else "http://$t"
+        }
+
         fun runScan(endpoint: String) {
             val url = normalizeUrl(urlInput.text.toString())
             reportText.text = ""
@@ -83,19 +96,6 @@ class ReconActivity : AppCompatActivity() {
                     }
                 }
             }.start()
-        }
-
-        fun cleanDomain(raw: String): String {
-            var d = raw.trim()
-            d = d.replace("http://", "").replace("https://", "")
-            d = d.split("/")[0]
-            d = d.removePrefix("www.")
-            return d.trim()
-        }
-
-        fun normalizeUrl(raw: String): String {
-            val t = raw.trim()
-            return if (t.startsWith("http://") || t.startsWith("https://")) t else "http://$t"
         }
 
         fun runSubdomains() {
