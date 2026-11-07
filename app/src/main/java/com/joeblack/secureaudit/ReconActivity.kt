@@ -68,7 +68,6 @@ class ReconActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         responseText
                     }
-                    lastMassResults = parsedArray
 
                     runOnUiThread {
                         reportText.text = display
