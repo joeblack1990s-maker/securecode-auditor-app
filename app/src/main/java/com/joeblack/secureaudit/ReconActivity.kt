@@ -68,6 +68,7 @@ class ReconActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         responseText
                     }
+                    lastMassResults = parsedArray
 
                     runOnUiThread {
                         reportText.text = display
@@ -163,8 +164,10 @@ class ReconActivity : AppCompatActivity() {
                     val responseText = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.readText().orEmpty()
                     conn.disconnect()
 
+                    var parsedArray: JSONArray? = null
                     val display = try {
                         val arr2 = JSONArray(responseText)
+                        parsedArray = arr2
                         val sb = StringBuilder()
                         for (i in 0 until arr2.length()) {
                             val o = arr2.getJSONObject(i)
@@ -178,7 +181,6 @@ class ReconActivity : AppCompatActivity() {
                                 .append("\n")
                         }
                         if (sb.isEmpty()) "No results." else sb.toString()
-                        lastMassResults = arr2
                     } catch (e: Exception) {
                         responseText
                     }
